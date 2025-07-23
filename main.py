@@ -39,3 +39,9 @@ def verify_code(code: Code):
     if len(str(code.secret_code)) == 4:
         return JSONResponse({"message" : f"You entered the right code of 4 length : {code.secret_code}!"},200)
     return JSONResponse({"message" : f"{code.secret_code} is not the right code! You are not allowed here!"},400)
+
+@app.get("/welcome")
+def welcome():
+    with open("welcome.html","r",encoding="utf-8") as file:
+        html_content=file.read()
+    return Response(content=html_content,status_code=200,media_type="text/html")
