@@ -12,7 +12,7 @@ def redirection():
 
 @app.get("/hello")
 def hello(request : Request,name:str = "Non défini(e)",is_teacher:bool = False):
-    accept_type = request.headers.get("accept")
+    accept_type = request.headers.get("Accept")
     if accept_type not in ("text/plain","text/html"):
         return "You won't see shit bitch!"
     else:
@@ -41,7 +41,13 @@ def verify_code(code: Code):
     return JSONResponse({"message" : f"{code.secret_code} is not the right code! You are not allowed here!"},400)
 
 @app.get("/welcome")
-def welcome():
+def welcome(request: Request):
+    accept_type = request.headers.get("Accept")
+    key_value = request.headers.get("x-api-key")
+    if accept_type not in ("text/plain","text/html"):
+        return Response(content=json.dumps({"message" : "Media type not supported!"}),status_code=400,media_type="application/json")
     with open("welcome.html","r",encoding="utf-8") as file:
         html_content=file.read()
-    return Response(content=html_content,status_code=200,media_type="text/html")
+        if key_value != "12345678":
+            return Response(content=json.dumps({"message":"The api key was not recognized!"}),status_code=403,media_type="text/html")
+        return Response(content=html_content,status_code=200,media_type="text/html")
