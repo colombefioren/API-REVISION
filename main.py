@@ -1,4 +1,6 @@
 import json
+from typing import List
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.requests import Request
@@ -44,10 +46,47 @@ def verify_code(code: Code):
 def welcome(request: Request):
     accept_type = request.headers.get("Accept")
     key_value = request.headers.get("x-api-key")
-    if accept_type not in ("text/plain","text/html"):
-        return Response(content=json.dumps({"message" : "Media type not supported!"}),status_code=400,media_type="application/json")
+    if not ("text/plain" in accept_type or "text/plain" in accept_type):
+        return Response(content=json.dumps({"message" : f"Media type not supported : {accept_type}"}),status_code=400,media_type="application/json")
     with open("welcome.html","r",encoding="utf-8") as file:
         html_content=file.read()
         if key_value != "12345678":
             return Response(content=json.dumps({"message":"The api key was not recognized!"}),status_code=403,media_type="text/html")
         return Response(content=html_content,status_code=200,media_type="text/html")
+
+
+class Event(BaseModel):
+    name: str
+    description: str
+    start_date : str
+    end_date : str
+
+events_store: List[Event] = []
+
+def serialized_stored_events():
+    events_converted = []
+    for event in events_store:
+        events_converted.append(event.model_dump())
+    return events_converted
+
+@app.get("/events")
+def get_event():
+    return Response(content=json.dumps({"events" : serialized_stored_events()}),status_code=200,media_type="application/json")
+
+@app.post("/events")
+def post_event(list_event : List[Event]):
+    for event in list_event:
+        for initial_event in events_store:
+            if initial_event.name == event.name:
+                return Response(content=json.dumps({"message":"An event with the same name already exists!"}),status_code=400,media_type="application/json")
+        events_store.append(event)
+    return Response(content=json.dumps({serialized_stored_events()}),status_code=200,media_type="application/json")
+
+
+@app.get("{full_path:path}")
+def catch_all(full_path: str):
+    with open("not_found.html","r",encoding="utf-8") as file:
+        html_content=file.read()
+        return Response(content=html_content,status_code=404,media_type="text/html")
+
+
