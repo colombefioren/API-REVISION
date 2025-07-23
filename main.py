@@ -80,7 +80,7 @@ def post_event(list_event : List[Event]):
             if initial_event.name == event.name:
                 return Response(content=json.dumps({"message":"An event with the same name already exists!"}),status_code=400,media_type="application/json")
         events_store.append(event)
-    return Response(content=json.dumps({serialized_stored_events()}),status_code=200,media_type="application/json")
+    return Response(content=json.dumps({"events": serialized_stored_events()}),status_code=200,media_type="application/json")
 
 
 @app.get("{full_path:path}")
