@@ -1,9 +1,13 @@
 import json
 from fastapi import FastAPI
 from starlette.requests import Request
-from starlette.responses import Response, JSONResponse
+from starlette.responses import Response, JSONResponse, RedirectResponse
 
 app = FastAPI()
+
+@app.get("/")
+def redirection():
+    RedirectResponse(url="/hello",status_code=302)
 
 @app.get("/hello")
 def hello(request : Request,name:str = "Non défini(e)",is_teacher:bool = False):
