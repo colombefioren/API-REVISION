@@ -1,5 +1,6 @@
 import json
 from fastapi import FastAPI
+from pydantic import BaseModel
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse, RedirectResponse
 
@@ -29,3 +30,12 @@ def verify_user(request : Request):
     if user_secret_key == "my_secret_key":
         return JSONResponse({"message" : "You entered the right key!"},200)
     return JSONResponse({"message" : f"{user_secret_key} is not the right key! You are not allowed here!"},403)
+
+class Code(BaseModel):
+    secret_code: int
+
+@app.post("/code")
+def verify_code(code: Code):
+    if len(str(code.secret_code)) == 4:
+        return JSONResponse({"message" : f"You entered the right code of 4 length : {code.secret_code}!"},200)
+    return JSONResponse({"message" : f"{code.secret_code} is not the right code! You are not allowed here!"},400)
