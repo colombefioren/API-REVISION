@@ -21,3 +21,11 @@ def hello(request : Request,name:str = "Non défini(e)",is_teacher:bool = False)
             if name != "Non défini(e)":
                 return JSONResponse({"message": f"Hello there {name}!"})
             return Response(content=json.dumps({"message":"Hello there bitch!"}),status_code=200,media_type="application/json")
+
+
+@app.get("/secret")
+def verify_user(request : Request):
+    user_secret_key = request.headers.get("Authorization")
+    if user_secret_key == "my_secret_key":
+        return JSONResponse({"message" : "You entered the right key!"},200)
+    return JSONResponse({"message" : f"{user_secret_key} is not the right key! You are not allowed here!"},403)
