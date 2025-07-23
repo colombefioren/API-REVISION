@@ -64,10 +64,10 @@ class Event(BaseModel):
 events_store: List[Event] = []
 
 def serialized_stored_events():
-    events_converted = []
+    converted_events = []
     for event in events_store:
-        events_converted.append(event.model_dump())
-    return events_converted
+        converted_events.append(event.model_dump())
+    return converted_events
 
 @app.get("/events")
 def get_event():
@@ -83,10 +83,22 @@ def post_event(list_event : List[Event]):
     return Response(content=json.dumps({"events": serialized_stored_events()}),status_code=200,media_type="application/json")
 
 
+@app.put("/events")
+def modify_event(list_event: List[Event]):
+    for event in list_event:
+        for initial_event in events_store:
+            if initial_event.name == event.name:
+                events_store.remove(initial_event)
+                events_store.append(event)
+        events_store.append(event)
+    return Response(content=json.dumps({"events": serialized_stored_events()}),status_code=200,media_type="application/json")
+
+
+
 @app.get("{full_path:path}")
 def catch_all(full_path: str):
     with open("not_found.html","r",encoding="utf-8") as file:
         html_content=file.read()
-        return Response(content=html_content,status_code=404,media_type="text/html")
+    return Response(content=html_content,status_code=404,media_type="text/html")
 
 
