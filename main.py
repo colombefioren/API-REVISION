@@ -48,11 +48,11 @@ def welcome(request: Request):
     key_value = request.headers.get("x-api-key")
     if not ("text/plain" in accept_type or "text/plain" in accept_type):
         return Response(content=json.dumps({"message" : f"Media type not supported : {accept_type}"}),status_code=400,media_type="application/json")
+    if key_value != "12345678":
+        return Response(content=json.dumps({"message":"The api key was not recognized!"}),status_code=403,media_type="text/html")
     with open("welcome.html","r",encoding="utf-8") as file:
         html_content=file.read()
-        if key_value != "12345678":
-            return Response(content=json.dumps({"message":"The api key was not recognized!"}),status_code=403,media_type="text/html")
-        return Response(content=html_content,status_code=200,media_type="text/html")
+    return Response(content=html_content,status_code=200,media_type="text/html")
 
 
 class Event(BaseModel):
@@ -76,24 +76,26 @@ def get_event():
 @app.post("/events")
 def post_event(list_event : List[Event]):
     for event in list_event:
+        exist = False
         for initial_event in events_store:
             if initial_event.name == event.name:
-                return Response(content=json.dumps({"message":"An event with the same name already exists!"}),status_code=400,media_type="application/json")
-        events_store.append(event)
+                exist = True
+        if exist is False:
+            events_store.append(event)
     return Response(content=json.dumps({"events": serialized_stored_events()}),status_code=200,media_type="application/json")
-
 
 @app.put("/events")
 def modify_event(list_event: List[Event]):
     for event in list_event:
-        for initial_event in events_store:
+        found = False
+        for i,initial_event in enumerate(events_store):
             if initial_event.name == event.name:
-                events_store.remove(initial_event)
-                events_store.append(event)
-        events_store.append(event)
+                events_store[i] = event
+                found = True
+                break
+        if found is False:
+            events_store.append(event)
     return Response(content=json.dumps({"events": serialized_stored_events()}),status_code=200,media_type="application/json")
-
-
 
 @app.get("{full_path:path}")
 def catch_all(full_path: str):
