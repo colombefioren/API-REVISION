@@ -7,7 +7,7 @@ app = FastAPI()
 
 @app.get("/")
 def redirection():
-    RedirectResponse(url="/hello",status_code=302)
+    return RedirectResponse(url="/hello",status_code=302)
 
 @app.get("/hello")
 def hello(request : Request,name:str = "Non défini(e)",is_teacher:bool = False):
