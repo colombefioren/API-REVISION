@@ -15,7 +15,7 @@ def redirection():
 @app.get("/hello")
 def hello(request : Request,name:str = "Non défini(e)",is_teacher:bool = False):
     accept_type = request.headers.get("Accept")
-    if accept_type not in ("text/plain","text/html"):
+    if accept_type != "text/plain" and accept_type != "text/html":
         return "You won't see shit bitch!"
     else:
         if is_teacher is True:
@@ -46,7 +46,7 @@ def verify_code(code: Code):
 def welcome(request: Request):
     accept_type = request.headers.get("Accept")
     key_value = request.headers.get("x-api-key")
-    if not ("text/plain" in accept_type or "text/plain" in accept_type):
+    if accept_type != "text/plain" and accept_type != "text/html":
         return Response(content=json.dumps({"message" : f"Media type not supported : {accept_type}"}),status_code=400,media_type="application/json")
     if key_value != "12345678":
         return Response(content=json.dumps({"message":"The api key was not recognized!"}),status_code=403,media_type="text/html")
@@ -97,7 +97,7 @@ def modify_event(list_event: List[Event]):
             events_store.append(event)
     return Response(content=json.dumps({"events": serialized_stored_events()}),status_code=200,media_type="application/json")
 
-@app.get("{full_path:path}")
+@app.get("/{full_path:path}")
 def catch_all(full_path: str):
     with open("not_found.html","r",encoding="utf-8") as file:
         html_content=file.read()
