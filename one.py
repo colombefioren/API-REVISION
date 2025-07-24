@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.requests import Request
 from starlette.responses import Response
+from typing import Optional
 
 app = FastAPI()
 
@@ -78,11 +79,43 @@ def patch_event(event_id : int,event : Event):
             return Response(content=json.dumps({"events":serialized_stored_events()}), status_code=200, media_type="application/json")
     return Response(content=json.dumps({"message":"Event not found"}),status_code=404,media_type="application/json")
 
-#PUT c'est pour une modification intégrale tandis que PATCH c'est pour une modification partielle.
+
+# PUT pour une modification intégrale tandis que PATCH c'est pour une modification partielle.
+@app.get("/events/{event_id}")
+def get_specific_event(event_id : int):
+    for event in events_store:
+        if event.id == event_id:
+            return Response(content=json.dumps({"event":event.model_dump()}),status_code=200,media_type="application/json")
+    with open("not_found.html","r",encoding="utf-8") as file:
+        html_content = file.read()
+    return Response(content=html_content,status_code=404,media_type="text/html")
+
+class EventUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+@app.patch("/events/{event_id}")
+def update_event(event_id: int, updates: EventUpdate):
+    for event in events_store:
+        if event.id == event_id:
+            # Mise à jour SEULEMENT des champs fournis
+            if updates.name is not None:
+                event.name = updates.name
+            if updates.description is not None:
+                event.description = updates.description
+            if updates.start_date is not None:
+                event.start_date = updates.start_date
+            if updates.end_date is not None:
+                event.end_date = updates.end_date
+            return {"status": "partial_update"}
+    return {"error": "Event not found"}, 404
 
 @app.get("{full_path:path}")
 def catch_all(full_path: str):
     with open("not_found.html","r",encoding="utf-8") as file:
         html_content=file.read()
     return Response(content=html_content,status_code=404,media_type="text/html")
+
 
